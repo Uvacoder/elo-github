@@ -1,13 +1,18 @@
 import React, { Component } from 'react';
-//import styled from 'styled-components'
+import PropTypes from 'prop-types';
+
 import Header from './components/Header'
-import Container from './components/Container'
+import Repositories from './components/Repositories'
+import Repository from './components/Repository'
+
+import { Switch, Route } from 'react-router-dom'
+import { withRouter } from 'react-router'
 
 class App extends Component {
   constructor() {
     super()
     this.state = { 
-      query: 'dota',
+      query: '',
       isFetching: true
     }
   }
@@ -15,7 +20,7 @@ class App extends Component {
   onChangeSearchText = (event) => {
     this.setState({ query: event.target.value })
   }
-    
+
   getRepository = () => {
     fetch(`https://api.github.com/search/repositories?q=${this.state.query}&sort=name&order=asc`).then(
       async results => {
@@ -26,7 +31,6 @@ class App extends Component {
           console.log('error: ', results.json())
       }})
     .then(data => {
-      console.log(data)
       this.setState({
         data: data,
         isFetching: false
@@ -35,18 +39,31 @@ class App extends Component {
   }
 
   render() {
-    return (
+    return (  
       <div className="App">
         <Header 
           getRepository={this.getRepository} 
           onChangeSearchText={this.onChangeSearchText}
           query={this.state.query}
         />
-        
-        {!this.state.isFetching && <Container data={this.state.data} />}
+        <Switch>
+          {!this.state.isFetching &&
+            <Route exact path='/repositories'
+              render={props => (
+                <Repositories {...props} data={this.state.data} />
+              )}
+            />
+          }
+          <Route exact path='/repositories/:username/:repo' component={Repository} />
+        </Switch>
       </div>
     );
   }
 }
 
-export default App;
+App.propTypes = {
+  query: PropTypes.string,
+  isFetching: PropTypes.bool
+}
+
+export default withRouter(App);

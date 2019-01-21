@@ -2,27 +2,32 @@ import React from 'react'
 import { ListGroup, ListGroupItem } from 'react-bootstrap'
 import styled from 'styled-components'
 
-const Repositories = ({ data }) => (
+import { Link } from 'react-router-dom'
+import { connect } from 'react-redux'
+import { fetchRepository } from '../redux-flow/reducers/repository/action-creators'
+
+const Repositories = ({ data, onClick }) => (
     <Main id='container'>
-        {data.items.map((r) => {
+        {data.total_count > 0 ?
+        (data.items.map((r) => {
             return (
                 <div key={r.id}>
-                    {data.total_count ?
-                    (<List>
-                        <ListGroupItem href={`repositories/${r.owner.login}/${r.name}`}><NameList>{r.name}</NameList></ListGroupItem>
+                    <List>
+                        <ListGroupItem onClick={onClick(r.owner.login, r.name)}>
+                            <Link to={`/${r.owner.login}/${r.name}`}><NameList>{r.name}</NameList></Link>
+                        </ListGroupItem>
                         <ListGroupItem>
                             <User>
-                                <Photo
-                                    src={r.owner.avatar_url} alt='avatar' />
+                                <Photo src={r.owner.avatar_url} alt='avatar' />
                                     {r.owner.login}                              
                             </User>
                         </ListGroupItem>
-                    </List>)
-                    :
-                    (<div>Repository not found</div>)}
+                    </List>
                 </div>
             )
-        })}
+        }))
+        : 
+        (<div>Type an existing repository</div>)}
     </Main>
 )
 
@@ -55,5 +60,11 @@ const Photo = styled.img`
     border-radius: 25%;
     margin-right: 10px;
 `
+const mapDispatchToProps = (dispatch) => ({
+    onClick: (username, repo) => (event) => {
+        event.preventDefault()
+        dispatch(fetchRepository(username, repo))
+      }
+})
 
-export default Repositories
+export default connect(null, mapDispatchToProps)(Repositories)

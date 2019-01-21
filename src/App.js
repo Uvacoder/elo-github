@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+import { connect } from 'react-redux'
 
 import Header from './components/Header'
 import Repositories from './components/Repositories'
@@ -9,61 +9,31 @@ import { Switch, Route } from 'react-router-dom'
 import { withRouter } from 'react-router'
 
 class App extends Component {
-  constructor() {
-    super()
-    this.state = { 
-      query: '',
-      isFetching: true
-    }
-  }
-
-  onChangeSearchText = (event) => {
-    this.setState({ query: event.target.value })
-  }
-
-  getRepository = () => {
-    fetch(`https://api.github.com/search/repositories?q=${this.state.query}&sort=name&order=asc`).then(
-      async results => {
-        try {
-          return await results.json()
-        }
-        catch(error) {
-          console.log('error: ', results.json())
-      }})
-    .then(data => {
-      this.setState({
-        data: data,
-        isFetching: false
-      })
-    })
-  }
 
   render() {
-    return (  
+    const { repositories } = this.props;
+    return (
       <div className="App">
-        <Header 
-          getRepository={this.getRepository} 
-          onChangeSearchText={this.onChangeSearchText}
-          query={this.state.query}
-        />
+        <Header />        
         <Switch>
-          {!this.state.isFetching &&
-            <Route exact path='/repositories'
+          {repositories &&
+            <Route exact path='/'
               render={props => (
-                <Repositories {...props} data={this.state.data} />
+                <Repositories {...props} data={repositories} />
               )}
             />
           }
-          <Route exact path='/repositories/:username/:repo' component={Repository} />
+          <Route exact path='/:username/:repo' component={Repository} />
         </Switch>
       </div>
     );
   }
 }
 
-App.propTypes = {
-  query: PropTypes.string,
-  isFetching: PropTypes.bool
-}
+const mapStateToProps = (state) => ({
+  repositories: state.repositories
+})
 
-export default withRouter(App);
+
+
+export default connect(mapStateToProps, null)(withRouter(App));
